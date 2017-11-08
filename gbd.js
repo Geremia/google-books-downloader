@@ -4,6 +4,7 @@ var casper = require('casper').create({
     logLevel: "debug"
 });
 var x = require('casper').selectXPath;
+var fs = require('fs');
 
 //Get the Google Books ID from the command line:
 casper.cli.drop("cli");
@@ -20,8 +21,14 @@ casper.on('resource.received', function(resource) {
     if (URL.indexOf("content?") !== -1 &&
         URL.indexOf("&pg=") !== -1 &&
         URL.indexOf("&img=1") !== -1) { //if it's an image URL
-        var file = URL.substring(URL.indexOf("&pg=") + 4, URL.indexOf("&img")) + ".png";
-        if (pngFileNames.indexOf(file) === -1) {
+
+        //form file name with 4-digit numbers padded with zero:
+        var pgPrefix = URL.substring(URL.indexOf("&pg=P") + 5, URL.indexOf("&pg=P") + 6);
+        var pgNum = URL.substring(URL.indexOf("&pg=P") + 6, URL.indexOf("&img"));
+        var pgNumPadded = String("000" + pgNum).slice(-4);
+        var file = pgPrefix + pgNumPadded + ".png";
+
+        if (pngFileNames.indexOf(file) === -1 && !fs.exists(file)) {
             try {
                 this.echo(file);
                 casper.download(URL, file);
@@ -36,3 +43,4 @@ casper.on('resource.received', function(resource) {
 });
 
 casper.run();
+
