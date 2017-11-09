@@ -1,13 +1,13 @@
-google-books-downloader
+proquest-books-downloader
 =======================
 
-Just a proof of concept Google Books downloader.
+Just a proof of concept Proquest Books downloader.
 
 This script started as a pet project to learn about CasperJS, but since it might be helpful to other people, I have decided to release it.
 
-Google Books is a great source of information, but I would love to have an offline version of some books to read later on my iPad.
+Proquest Books is a great source of information, but I would love to have an offline version of some books to read later on my iPad.
 
-I wanted to scrape the HTML and extract all the image information that contains the actual pages, but Google Books implements lazy loading to download the pages as you scroll down on the page.
+I wanted to scrape the HTML and extract all the image information that contains the actual pages, but Proquest Books implements lazy loading to download the pages as you scroll down on the page.
 
 Thus, the only way to extract the images is using an actual, javascript enabled browser. Or a a headless implementation of one, and this is where PhantomJS comes in :)
 
@@ -28,7 +28,7 @@ Known Limitations
 Usage
 -----
 
-`casperjs gbd.js <Google Books ID>`
+`casperjs gbd.js <Proquest Books ID>`
 
 TODO
 ----
