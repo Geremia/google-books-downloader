@@ -1,15 +1,15 @@
 var pngFileNames = []; //array of PNG files downloaded
 var page; //running page number
 var casper = require('casper').create({
-    verbose: false,
+    verbose: true,
     logLevel: "debug",
     pageSettings: {
-        webSecurityEnabled: false
+        webSecurityEnabled: false,
     },
-	viewportSize: {
-       width: 1024,
-       height: 600
-   }	
+    viewportSize: {
+        width: 800,
+        height: 600
+    }
 });
 var x = require('casper').selectXPath;
 var fs = require('fs');
@@ -18,11 +18,17 @@ var fs = require('fs');
 casper.cli.drop("cli");
 casper.cli.drop("casper-path");
 if (casper.cli.args.length < 2) {
-    casper.echo("Please pass the institution ID (e.g., UAZ) and ProQuest ID (e.g., 4592423) to the command line.").exit();
+    casper.echo("Usage: casperjss gbd.js <institution ID (e.g., UAZ)> <ProQuest ID (e.g., 4592423)> <# pages>.").exit();
 }
 var url = 'https://ebookcentral.proquest.com/lib/' + casper.cli.args[0] + '/reader.action?docID=' + casper.cli.args[1];
+var numPages = casper.cli.args[2];
 
 casper.start(url);
+
+casper.on('load.finished', function() { //zoom in so images are high res
+    this.click(x('//*[@id="tool-viewlarger"]'));
+    this.click(x('//*[@id="tool-viewlarger"]'));
+});
 
 casper.on('resource.received', function(resource) {
     var URL = resource.url;
@@ -33,18 +39,20 @@ casper.on('resource.received', function(resource) {
         var file = page + ".png";
         if (pngFileNames.indexOf(file) === -1 && !fs.exists(file)) {
             try {
-    		this.echo(file + ' ' + URL);
+                this.echo(file + ' ' + URL);
                 casper.download(URL, file);
                 pngFileNames.push(file); // keep track of downloaded PNGs
             } catch (e) {
                 this.echo(e);
             }
-        }
-    } else {
-	    casper.wait(1000, function() {
-                this.click(x('//*[@id="tool-pager-next"]'));
-	    });
+	} 
     }
+});
+
+casper.repeat(numPages, function() {
+	casper.wait(600000/numPages, function() { // = 5 min. ÷ (# pages)
+		this.click(x('//*[@id="tool-pager-next"]'));
+	});
 });
 
 casper.run();

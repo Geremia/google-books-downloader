@@ -28,7 +28,7 @@ Known Limitations
 Usage
 -----
 
-`casperjs gbd.js <Proquest Books ID>`
+`casperjs gbd.js <institution ID (e.g., UAZ)> <ProQuest ID (e.g., 4592423)> <# pages> [starting page]`
 
 TODO
 ----
