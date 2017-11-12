@@ -1,7 +1,7 @@
 var pngFileNames = []; //array of PNG files downloaded
 var page; //running page number
 var casper = require('casper').create({
-    verbose: true,
+    verbose: false,
     logLevel: "debug",
     pageSettings: {
         webSecurityEnabled: false,
@@ -14,20 +14,41 @@ var casper = require('casper').create({
 var x = require('casper').selectXPath;
 var fs = require('fs');
 
-//Get the Google Books ID from the command line:
+//Get the Proquest book ID from the command line:
 casper.cli.drop("cli");
 casper.cli.drop("casper-path");
-if (casper.cli.args.length < 2) {
-    casper.echo("Usage: casperjss gbd.js <institution ID (e.g., UAZ)> <ProQuest ID (e.g., 4592423)> <# pages>.").exit();
+if (casper.cli.args.length < 3) {
+    casper.echo("Usage: casperjss gbd.js <institution ID (e.g., UAZ)> <ProQuest ID (e.g., 4592423)> <# pages> [start page].").exit();
 }
 var url = 'https://ebookcentral.proquest.com/lib/' + casper.cli.args[0] + '/reader.action?docID=' + casper.cli.args[1];
 var numPages = casper.cli.args[2];
 
 casper.start(url);
 
-casper.on('load.finished', function() { //zoom in so images are high res
+casper.then(function() { //zoom in so images are high res
     this.click(x('//*[@id="tool-viewlarger"]'));
     this.click(x('//*[@id="tool-viewlarger"]'));
+});
+
+casper.then(function() {
+    if (casper.cli.args.length === 4) {
+        casper.wait(2000, function() {
+            var startPage = casper.cli.args[3];
+            this.echo('Jumping to page ~' + startPage + ' @ scroll position ' +
+                this.evaluate(function(startPage, numPages) {
+                    var mainViewer = document.querySelector('#mainViewer');
+                    return mainViewer.scrollTop = 417542 * startPage / numPages;
+                }, startPage, numPages));
+        });
+    }
+});
+
+casper.then(function() {
+    casper.repeat(numPages, function() {
+        casper.wait(2000, function() {
+            this.click(x('//*[@id="tool-pager-next"]'));
+        });
+    });
 });
 
 casper.on('resource.received', function(resource) {
@@ -39,20 +60,14 @@ casper.on('resource.received', function(resource) {
         var file = page + ".png";
         if (pngFileNames.indexOf(file) === -1 && !fs.exists(file)) {
             try {
-                this.echo(file + ' ' + URL);
+                this.echo(file);
                 casper.download(URL, file);
                 pngFileNames.push(file); // keep track of downloaded PNGs
             } catch (e) {
                 this.echo(e);
             }
-	} 
+        }
     }
-});
-
-casper.repeat(numPages, function() {
-	casper.wait(600000/numPages, function() { // = 5 min. ÷ (# pages)
-		this.click(x('//*[@id="tool-pager-next"]'));
-	});
 });
 
 casper.run();
