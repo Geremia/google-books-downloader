@@ -1,5 +1,5 @@
 var pngFileNames = []; //array of PNG files downloaded
-var page; //running page number
+var pgNum = 0; //running page number
 var casper = require('casper').create({
     verbose: false,
     logLevel: "debug",
@@ -45,7 +45,7 @@ casper.then(function() {
 
 casper.then(function() {
     casper.repeat(numPages, function() {
-        casper.wait(2000, function() {
+        casper.wait(1000, function() {
             this.click(x('//*[@id="tool-pager-next"]'));
         });
     });
@@ -53,10 +53,8 @@ casper.then(function() {
 
 casper.on('resource.received', function(resource) {
     var URL = resource.url;
-    if (URL.indexOf("remoteDocServer.api") !== -1) { //parse page number
-        var pgNum = URL.substring(URL.indexOf("&pageNum=") + 9, URL.indexOf("&tmpOpt"));
-        page = String("000" + pgNum).slice(-4);
-    } else if (URL.indexOf("docImage.action?") !== -1) { //if it's an image URL
+    if (URL.indexOf("docImage.action?") !== -1) { //if it's an image URL
+    	page = String("000" + pgNum++).slice(-4);
         var file = page + ".png";
         if (pngFileNames.indexOf(file) === -1 && !fs.exists(file)) {
             try {
